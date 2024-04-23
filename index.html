@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Map</title>
+
+    <!-- load maps javascript api -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?v=beta&key=AIzaSyDuy-6ipdy8hZW-RCLXzNqLFko0rAyuy0M&loading=async&libraries=places">
+    </script>
+
+    <!-- load firebase setup code -->
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-database.js"></script>
+    
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <!-- icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css" type="text/css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+</head>
+
+<body>
+    <input id="search-input" class="controls" type="text" placeholder="Enter a place..."/>
+    <button id="currentloc-button">Current Location</button>
+    <label id="toggle-container" class="switch">
+        <input id="streetmode-toggle" type="checkbox">
+        <span class="slider round"></span>
+    </label>
+    <div id="map"></div>
+    <!-- <div class="container">
+        
+    </div> -->
+    <div class="wrapper side-panel-open">
+        <button class="side-panel-toggle" type="button">
+          add a marker
+          <span class="material-icons sp-icon-open">expand_less</span>
+          <span class="material-icons sp-icon-close">expand_more</span>
+        </button>
+        <div class="side-panel">
+            <div class="side-panel-content">
+                <p id="invalid-loc">click to drop a pin here!</p>
+                <p id="loc-status">Location Status: No location chosen yet</p>
+                <p id="marker-status">Marker Status: No marker added yet</p>
+                <form id="marker-form">
+                    <textarea id="location-text" placeholder="Enter a location... (ex. 5th floor of bobst, corner of lafayette and canal, park bench in WSP, the MoMA)"></textarea>
+                    <textarea id="memory-text" placeholder="Enter a memory..."></textarea>
+                    <button type="submit" id="add-marker-btn">Submit</button>
+                </form>
+            </div>
+        </div>
+      </div>
+</body>
+</html>
+<script type="module" src="script.js"></script>

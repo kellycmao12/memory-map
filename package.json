@@ -1,0 +1,22 @@
+{
+	"name": "testkmao",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite --host",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"devDependencies": {
+		"vite": "^5.2.0"
+	},
+	"dependencies": {
+		"@googlemaps/three": "^4.0.10",
+		"@react-three/drei": "^9.32.4",
+		"dotenv": "^16.4.5",
+		"firebase": "^10.11.0",
+		"gsap": "^3.12.5",
+		"three": "^0.145.0"
+	}
+}
