@@ -11,9 +11,45 @@ const NEW_YORK_BOUNDS = {
 };
 const CENTER = { lat: 40.71, lng: -73.97 };
 
+const roughNYCBounds = [
+  { lat: 40.487, lng: -74.276 },
+  { lat: 40.661, lng: -74.210 },
+  { lat: 40.658, lng: -74.059 },
+  { lat: 40.775, lng: -74.013 },
+  { lat: 40.935, lng: -73.915 },
+  { lat: 40.880, lng: -73.748 },
+  { lat: 40.813, lng: -73.769 },
+  { lat: 40.752, lng: -73.691 },
+  { lat: 40.593, lng: -73.730 },
+  { lat: 40.535, lng: -73.948 },
+  { lat: 40.488, lng: -74.259 }
+];
+const roughNYCArea = new google.maps.Polygon({ paths: roughNYCBounds, fillColor: "#FF0000",
+fillOpacity: 0.35 });
+
 // general map stuff
 let map;
-let mapOptions; // map settings
+const mapOptions = {
+  center: CENTER,
+  zoom: 10,
+  minZoom: 10,
+  tilt: 0,
+  mapId: '91730daa8c535619',
+  mapTypeId: 'roadmap',
+  // disable controls code from https://stackoverflow.com/questions/5976854/how-to-disable-google-maps-satellite-view
+  mapTypeControlOptions: {
+    // mapTypeIds: [google.maps.MapTypeId.ROADMAP, google.maps.MapTypeId.HYBRID]
+    // mapTypeId: 'satellite'
+  }, // here´s the array of controls
+  disableDefaultUI: true, // a way to quickly hide all controls
+  clickableIcons: false, // disable ability to click on default POIs outside of NYC
+  // restrict it to NYC
+  restriction: {
+    latLngBounds: NEW_YORK_BOUNDS,
+    strictBounds: false
+  },
+};
+
 let infoWindow;
 let chosenCoords;
 let bounds;
@@ -35,33 +71,17 @@ let pointer;
 let raycaster;
 let renderer;
 let camera;
+let modelScale;
 
 document.addEventListener('DOMContentLoaded', () => {
   initMap();
+  locateUser();
 });
 
 function initMap() {
-    // set options
-    mapOptions = {
-      center: CENTER,
-      zoom: 10,
-      tilt: 0,
-      mapId: '91730daa8c535619',
-      // disable controls code from https://stackoverflow.com/questions/5976854/how-to-disable-google-maps-satellite-view
-      mapTypeControlOptions: {
-        mapTypeIds: [google.maps.MapTypeId.ROADMAP, google.maps.MapTypeId.HYBRID]
-      }, // here´s the array of controls
-      disableDefaultUI: true, // a way to quickly hide all controls
-      // restrict it to NYC
-      restriction: {
-        latLngBounds: NEW_YORK_BOUNDS,
-        strictBounds: false
-      },
-    };
-
     // create map, initialize properties
     map = new google.maps.Map(document.getElementById("map"), mapOptions);
-
+    
     // create info window to display story text
     infoWindow = new google.maps.InfoWindow();
  
@@ -95,8 +115,6 @@ function initMap() {
     });
 
     // define bounds of each borough according to json file
-
-    // UNCOMMENT THE BELOW 2 BLOCKS ONCE I FIGURE OUT JSON
     // brian's code
     map.data.addListener('addfeature', function (event) {
       // console.log('working', event.feature.getGeometry())
@@ -110,14 +128,21 @@ function initMap() {
     // Set mouseover event for each feature.
     map.data.addListener('mouseover', function(event) {
       if (!chosenCoords) {
-        document.getElementById('invalid-loc').textContent =
-        "click to drop a pin here!";
+        updatePickPlaceStatus("click on the map to drop a pin!");
       }
     });
+
     map.data.addListener('mouseout', function(event) {
       if (!chosenCoords) {
-        document.getElementById('invalid-loc').textContent =
-        "oops, this isn't nyc anymore...";
+        updatePickPlaceStatus("oops, this isn't nyc anymore...");
+      }
+    });
+
+    // don't show "oops" message if mouse is over side panel
+    const sidePanel = document.querySelector('.side-panel');
+    sidePanel.addEventListener('mouseover', function(event) {
+      if (!chosenCoords) {
+        updatePickPlaceStatus("click on the map to drop a pin!");
       }
     });
 
@@ -129,7 +154,7 @@ function initMap() {
       strokeWeight: 1,
     });
 
-    map.fitBounds(bounds);
+    // map.fitBounds(bounds);
 
     // set up firebase
     config();
@@ -173,6 +198,7 @@ function initThreeJS() {
   directionalLight.position.set(0, 10, 50)
   // scene.add(directionalLight)
   loader = new GLTFLoader();
+  modelScale = 10;
 
   pointer = new THREE.Vector2();
   raycaster = new THREE.Raycaster();
@@ -249,12 +275,13 @@ function populateMap3D(scene) {
         model.name = 'daffodil';
         model.rotation.x = Math.PI / 2;
         model.rotation.y = Math.random() * 2 * Math.PI;
-        model.scale.set(30, 30, 30);
+        model.scale.set(modelScale, modelScale, modelScale);
 
         // custom property to store extra data
         model.userData = {
           locationText: childData.locationText,
-          memoryText: childData.memoryText
+          memoryText: childData.memoryText,
+          numVisits: childData.numVisits
         };
 
         // convert marker position to vector3
@@ -287,12 +314,13 @@ function populateMap3D(scene) {
         const model = gltf.scene;
         model.name = 'daffodil';
         model.rotation.x = Math.PI / 2;
-        model.scale.set(30, 30, 30);
+        model.scale.set(modelScale, modelScale, modelScale);
 
         // custom property to store extra data
         model.userData = {
           locationText: childData.locationText,
-          memoryText: childData.memoryText
+          memoryText: childData.memoryText,
+          numVisits: childData.numVisits
         };
 
         model.position.copy(
@@ -321,14 +349,12 @@ function hideMarkers3D() {
   console.log('hide 3D markers');
   scene.visible = false;
   overlay.requestRedraw();
-  // console.log(scene);
 }
 
 function showMarkers3D() {
   console.log('show 3D markers');
   scene.visible = true;
   overlay.requestRedraw();
-  // console.log(scene);
 }
 
 function config() {
@@ -366,9 +392,7 @@ function processPoints(geometry, callback, thisArg) {
 // from https://developers.google.com/maps/documentation/javascript/geolocation#maps_map_geolocation-javascript
 function initGeolocation() {
     const locationButton = document.getElementById("currentloc-button");
-    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
     locationButton.addEventListener("click", locateUser);
-    locateUser();
 }
 
 function locateUser() {
@@ -385,6 +409,11 @@ function locateUser() {
           currLocMarker.setMap(map);
           currLocMarker.setPosition(pos);
           currLoc = pos;
+
+          handleLocationSuccess(pos);
+          if (streetMode) {
+            zoomIn(pos);
+          }
         }, () => {
         handleLocationError(true, infoWindow, map.getCenter());
         },
@@ -393,18 +422,27 @@ function locateUser() {
       // Browser doesn't support Geolocation
       handleLocationError(false, infoWindow, map.getCenter());
     }
-    zoomIn(currLoc);
+}
 
+function handleLocationSuccess(pos) {
+  console.log("location success");
+  
+  const currentLocButton = document.getElementById("currentloc-button");
+  currentLocButton.classList.remove("hidden");
+  const toggleContainer = document.getElementById("toggle-container");
+  toggleContainer.classList.remove("hidden");
 }
 
 function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-    infoWindow.setPosition(pos);
-    infoWindow.setContent(
-      browserHasGeolocation
-        ? "Error: The Geolocation service failed."
-        : "Error: Your browser doesn't support geolocation.",
-    );
-    infoWindow.open(map);
+  console.log("location error");
+    // infoWindow.setPosition(pos);
+    // infoWindow.setContent(
+    //   browserHasGeolocation
+    //     ? "Error: The Geolocation service failed."
+    //     : "Error: Your browser doesn't support geolocation.",
+    // );
+    // infoWindow.open(map);
+    // console.log("location error");
 }
 
 // from https://developers.google.com/maps/documentation/javascript/examples/places-searchbox
@@ -414,7 +452,6 @@ function initLocationSearch() {
     const input = document.getElementById("search-input");
     const searchBox = new google.maps.places.SearchBox(input);
 
-    map.controls[google.maps.ControlPosition.TOP_LEFT].push(document.getElementById('search-input'));
     map.addListener("bounds_changed", () => {
       searchBox.setBounds(map.getBounds());
     });
@@ -429,23 +466,28 @@ function initLocationSearch() {
       var i, place;
       for (i = 0; place = places[i]; i++) {
         (function(place) {
-          // display previewMarker at the chosen search result
-          previewMarker.setPosition(place.geometry.location);
-          previewMarker.setMap(map);
+          // Check if the chosen location is within allowed bounds
+          if (google.maps.geometry.poly.containsLocation(place.geometry.location, roughNYCArea)) {
+            // display previewMarker at the chosen search result
+            previewMarker.setPosition(place.geometry.location);
+            previewMarker.setMap(map);
 
-          previewMarker.bindTo('map', searchBox, 'map');
-          google.maps.event.addListener(previewMarker, 'map_changed', function() {
-            if (!this.getMap()) {
-              this.unbindAll();
-            }
-          });
-          bounds.extend(place.geometry.location);
-          chosenCoords = place.geometry.location;
-          
-          // update location status
-          updateLocationStatus("Location Status: Searched up " + chosenCoords);
-          document.getElementById('invalid-loc').textContent = "fill out memory details ☆";
-          document.getElementById("search-input").value = "";
+            previewMarker.bindTo('map', searchBox, 'map');
+            google.maps.event.addListener(previewMarker, 'map_changed', function() {
+              if (!this.getMap()) {
+                this.unbindAll();
+              }
+            });
+            bounds.extend(place.geometry.location);
+            chosenCoords = place.geometry.location;
+            
+            // update location status
+            updatePickPlaceStatus("searched up " + chosenCoords);
+            document.getElementById("search-input").value = "";
+          } else {
+            // location is outside allowed bounds
+            updatePickPlaceStatus("oops, this isn't nyc anymore...");
+          }
  
         } (place));
  
@@ -461,8 +503,7 @@ function initClickListener(){
   map.data.addListener("click", function(mapsMouseEvent) {
     chosenCoords = mapsMouseEvent.latLng;
     // update location status
-    updateLocationStatus("Location Status: Clicked on " + chosenCoords);
-    document.getElementById('invalid-loc').textContent = "fill out memory details ☆";
+    updatePickPlaceStatus("clicked on " + chosenCoords);
     // display preview marker
     previewMarker.setPosition(chosenCoords);
     previewMarker.setMap(map);
@@ -473,9 +514,8 @@ function initClickListener(){
   map.addListener("click", function(mapsMouseEvent) {
     chosenCoords = null;
     // update location status
-    updateLocationStatus("Location Status: Not a valid location");
-    document.getElementById('invalid-loc').textContent = "oops, this isn't nyc anymore...";
-    // display preview marker
+    updatePickPlaceStatus("oops, this isn't nyc anymore...");
+    // hide preview marker
     previewMarker.setPosition(null);
     previewMarker.setMap(null);
     infoWindow.close();
@@ -486,12 +526,13 @@ function initClickListener(){
 function raycast() {
 	window.addEventListener('click', (event) => {
     if (streetMode) {
-      pointer.x = (event.clientX / window.innerWidth * 0.7) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight * 0.7) * 2 + 1; // y starts out as negative
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1; // y starts out as negative
       raycaster.setFromCamera(pointer, camera);
       const intersects = raycaster.intersectObjects(scene.children, true);
       // console.log(window.innerWidth);
-      console.log(intersects);
+      console.log(pointer);
+      console.log(scene.children);
   
       // loop through all intersected objects, trigger other events based on what user clicked on
       for (let i = 0; i < intersects.length; i++) {
@@ -514,8 +555,8 @@ function raycast() {
 }
 
 function initPopup() {
-  document.querySelector(".side-panel-toggle").addEventListener("click", () => {
-    document.querySelector(".wrapper").classList.toggle("side-panel-open");
+  document.querySelector(".side-panel-heading").addEventListener("click", () => {
+    document.querySelector(".side-panel").classList.toggle("is-open");
   });
 }
 
@@ -538,7 +579,7 @@ function initForm() {
         // clear chosenCoords and text
         clearUserInput();
     } else {
-        alert("Please enter both text and a location for the marker."); // Show an alert if no text is entered
+        alert("Finish all of the steps to submit a memory!"); // Show an alert if no text is entered
     }
   });
 }
@@ -564,10 +605,7 @@ function addMarker(coords, locationText, memoryText) {
     marker.addListener('click', function() {
       infoWindow.setContent(content);
       infoWindow.open(map, marker);
-      console.log('marker clicked');
     });
-
-    updateMarkerStatus("Marker Status: Marker added at " + marker.position);
   }
 }
 
@@ -583,7 +621,8 @@ function saveMarkerToFirebase(coords, locationText, memoryText) {
         lng: lng
       },
       locationText: locationText,
-      memoryText: memoryText
+      memoryText: memoryText,
+      numVisits: 0
   });
 }
 
@@ -595,28 +634,24 @@ function clearUserInput() {
     document.getElementById("memory-text").value = "";
 
     // update location and marker statuses
-    updateLocationStatus("Location Status: No location chosen yet");
 }
 
-function updateLocationStatus(text) {
-  document.getElementById("loc-status").innerText = text;
-}
-
-function updateMarkerStatus(text) {
-  document.getElementById("marker-status").innerText = text;
+function updatePickPlaceStatus(text) {
+  document.getElementById("pick-place-status").innerText = text;
 }
 
 function initStreetMode() {
   // add event listener to the checkbox element
   let toggleContainer = document.getElementById("toggle-container");
-  map.controls[google.maps.ControlPosition.TOP_LEFT].push(toggleContainer);
   let toggle = document.getElementById("streetmode-toggle");
   toggle.addEventListener("change", function(event) {
     if (this.checked) {
       streetMode = true;
       showMarkers3D();
       hideMarkers2D();
-      zoomIn(currLoc);
+      locateUser();
+      // zoomIn(currLoc);
+      // set min zoom?
     } else {
       streetMode = false;
       showMarkers2D();
@@ -637,3 +672,5 @@ function zoomOut(center) {
   map.setZoom(14);  // zoom out
   map.setTilt(0);  // no tilt
 }
+
+// 10 is min zoom

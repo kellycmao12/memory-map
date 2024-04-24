@@ -7,7 +7,7 @@
 
     <!-- load maps javascript api -->
     <script async defer
-        src="https://maps.googleapis.com/maps/api/js?v=beta&key=AIzaSyDuy-6ipdy8hZW-RCLXzNqLFko0rAyuy0M&loading=async&libraries=places">
+        src="https://maps.googleapis.com/maps/api/js?v=beta&key=AIzaSyDuy-6ipdy8hZW-RCLXzNqLFko0rAyuy0M&loading=async&libraries=places,geometry">
     </script>
 
     <!-- load firebase setup code -->
@@ -19,6 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap" rel="stylesheet">
 
     <!-- icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -30,35 +31,72 @@
 </head>
 
 <body>
-    <input id="search-input" class="controls" type="text" placeholder="Enter a place..."/>
-    <button id="currentloc-button">Current Location</button>
-    <label id="toggle-container" class="switch">
-        <input id="streetmode-toggle" type="checkbox">
-        <span class="slider round"></span>
-    </label>
-    <div id="map"></div>
-    <!-- <div class="container">
-        
-    </div> -->
-    <div class="wrapper side-panel-open">
-        <button class="side-panel-toggle" type="button">
-          add a marker
+    <div class="top-container">
+        <div id="project-heading">
+            <img src="logo placeholder.png" alt="logo" class="project-logo">
+            <h1 class="project-name">Project<br/>Name</h1>
+        </div>
+        <div id="project-description">
+            <h3>An interactive map of memories made in New York.</h3>
+            <p class="small-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.</p>
+        </div>
+        <div id="controls-container">
+            <button id="currentloc-button" class="hidden">Current Location</button>
+            <label id="toggle-container" class="switch hidden">
+                <input id="streetmode-toggle" type="checkbox">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="map-container">
+         
+        <picture>
+            <source 
+               media="(max-width: 767px)"
+               srcset="/overlay-frame-phone.png">
+            <source 
+               media="(max-width: 1200px)"
+               srcset="/overlay-frame-med.png">
+            <source 
+               media="(min-width: 1201px)"
+               srcset="/overlay-frame.png">
+            <img src="/overlay-frame.png" alt="frame overlay for map" class="map-overlay">
+        </picture>
+        <div id="map"></div>
+    </div>
+    
+    <div class="side-panel is-open">
+        <button class="side-panel-heading" type="button">
+          <div class="panel-heading-title">
+            <p>Add a new memory!</p>
+          </div>
           <span class="material-icons sp-icon-open">expand_less</span>
           <span class="material-icons sp-icon-close">expand_more</span>
         </button>
-        <div class="side-panel">
-            <div class="side-panel-content">
-                <p id="invalid-loc">click to drop a pin here!</p>
-                <p id="loc-status">Location Status: No location chosen yet</p>
-                <p id="marker-status">Marker Status: No marker added yet</p>
-                <form id="marker-form">
-                    <textarea id="location-text" placeholder="Enter a location... (ex. 5th floor of bobst, corner of lafayette and canal, park bench in WSP, the MoMA)"></textarea>
-                    <textarea id="memory-text" placeholder="Enter a memory..."></textarea>
-                    <button type="submit" id="add-marker-btn">Submit</button>
-                </form>
-            </div>
+        <div class="side-panel-content">
+            <form id="marker-form" class="numbered-list">
+                <ol>
+                    <li>
+                        <p>Pick a place on the map.</p>
+                        <input id="search-input" class="controls" type="text" placeholder="search up a place..."/>
+                        <p class="small-text" id="pick-place-status">click on the map to drop a pin!</p>
+                    </li>
+                    <li>
+                        <p>Describe the place in your own words.</p>
+                        <p class="small-text" id="location-instruct">ex. a bench in Washington Square Park, the corner of Lafayette and Canal, an exhibit in the MoMA</p>
+                        <textarea id="location-text" placeholder=""></textarea>
+                    </li>
+                    <li>
+                        <p>Enter a memory that happened here.</p>
+                        <textarea id="memory-text" placeholder=""></textarea>
+                    </li>
+                </ol>
+                <button type="submit" id="add-marker-btn">Submit</button>
+            </form>
         </div>
-      </div>
+    </div>
 </body>
 </html>
 <script type="module" src="script.js"></script>
+<!-- <script type="module" src="threejs-markers.js"></script> -->
