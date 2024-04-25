@@ -33,6 +33,7 @@ const mapOptions = {
   center: CENTER,
   zoom: 10,
   minZoom: 10,
+  maxZoom: 19,
   tilt: 0,
   mapId: '91730daa8c535619',
   mapTypeId: 'roadmap',
@@ -52,12 +53,13 @@ const mapOptions = {
 
 let infoWindow;
 let chosenCoords;
+let badLoc;
 let bounds;
 let database; // firebase database
-let currLoc;
+let currLoc = null;
 let currLocMarker;
 let previewMarker;
-let streetMode;
+let inPersonMode;
 let markers2D = [];
 let markers3D = [];
 
@@ -75,7 +77,6 @@ let modelScale;
 
 document.addEventListener('DOMContentLoaded', () => {
   initMap();
-  locateUser();
 });
 
 function initMap() {
@@ -83,7 +84,7 @@ function initMap() {
     map = new google.maps.Map(document.getElementById("map"), mapOptions);
     
     // create info window to display story text
-    infoWindow = new google.maps.InfoWindow();
+    infoWindow = new google.maps.InfoWindow({disableAutoPan: true});
  
     // create bounds
     bounds = new google.maps.LatLngBounds();
@@ -91,7 +92,8 @@ function initMap() {
     // add geoJson to the data-layer
     map.data.loadGeoJson('/boundaries.geojson');
 
-    streetMode = false;
+    inPersonMode = false;
+    badLoc = false;
 
     // initialize previewMarker with image, don't show it yet
     previewMarker = new google.maps.Marker({
@@ -117,9 +119,6 @@ function initMap() {
     // define bounds of each borough according to json file
     // brian's code
     map.data.addListener('addfeature', function (event) {
-      // console.log('working', event.feature.getGeometry())
-      bounds = new google.maps.LatLngBounds()
-      infoWindow = new google.maps.InfoWindow()
       const geometry = event.feature.getGeometry()
       processPoints(geometry, bounds.extend, bounds)
       map.fitBounds(bounds)
@@ -141,7 +140,7 @@ function initMap() {
     // don't show "oops" message if mouse is over side panel
     const sidePanel = document.querySelector('.side-panel');
     sidePanel.addEventListener('mouseover', function(event) {
-      if (!chosenCoords) {
+      if (!chosenCoords && !badLoc) {
         updatePickPlaceStatus("click on the map to drop a pin!");
       }
     });
@@ -154,35 +153,26 @@ function initMap() {
       strokeWeight: 1,
     });
 
-    // map.fitBounds(bounds);
-
     // set up firebase
     config();
     database = firebase.database();
 
-    // addThreeJS();
-    // scene = new THREE.Scene()
-    // ambientLight = new THREE.AmbientLight(0xffffff, 0.75)
-    // scene.add(ambientLight)
-    // directionalLight = new THREE.DirectionalLight(0xffffff, 0.25)
-    // directionalLight.position.set(0, 10, 50)
-    // scene.add(directionalLight)
-    // loader = new GLTFLoader();
-
     // set up threejs stuff
     initThreeJS();
     // allow app to detect user location
-    initGeolocation();
+    locateUser(false);
+    // detect location on first loading
+    initCurrentLoc();
     // allow user to search for a place
     initLocationSearch();
     // allow map to detect clicks
     initClickListener();
-    // set up popup panel for submitting a new memory
-    initPopup();
+    // set up button controls in top right (for in-person mode, locate me)
+    initControls();
+    // set up side panel for submitting a new memory
+    initSidePanel();
     // set up correct actions for submitting a new memory
     initForm();
-    // set up street mode option
-    initStreetMode();
     // populate map
     populateMap2D(); // load all 2D markers
     populateMap3D(scene); // load all 3D markers
@@ -192,13 +182,13 @@ function initMap() {
 
 function initThreeJS() {
   scene = new THREE.Scene()
-  ambientLight = new THREE.AmbientLight(0xff82e0, 0.75)
+  ambientLight = new THREE.AmbientLight(0xa38e9c, 0.75)
   scene.add(ambientLight)
   directionalLight = new THREE.DirectionalLight(0xffffff, 0.25)
   directionalLight.position.set(0, 10, 50)
   // scene.add(directionalLight)
   loader = new GLTFLoader();
-  modelScale = 10;
+  modelScale = 8;
 
   pointer = new THREE.Vector2();
   raycaster = new THREE.Raycaster();
@@ -218,20 +208,20 @@ function populateMap2D() {
       snapshot.forEach((childSnapshot) => {
         // var childKey = childSnapshot.key;
         var childData = childSnapshot.val();
+        const markerId = childSnapshot.key;
 
         // create a marker
         const marker = new google.maps.Marker({
             map: map,
             position: childData.coords
         });
-
-        var content = childData.locationText + ":\n" + childData.memoryText;
+        
         marker.addListener('click', function() {
-            infoWindow.setContent(content);
+            infoWindow.setContent(formatContentString(childData.locationText, childData.memoryText, false));
             infoWindow.open(map, marker);
         });
 
-        markers2D.push(marker);
+        markers2D.push({ id: markerId, marker });
       });
     });
 }
@@ -240,7 +230,7 @@ function populateMap2D() {
 // Sets the map on all markers in the array.
 function setMapOnAll(map) {
   for (let i = 0; i < markers2D.length; i++) {
-    markers2D[i].setMap(map);
+    markers2D[i].marker.setMap(map);
   }
 }
 
@@ -279,6 +269,8 @@ function populateMap3D(scene) {
 
         // custom property to store extra data
         model.userData = {
+          id: markerId,
+          position: position,
           locationText: childData.locationText,
           memoryText: childData.memoryText,
           numVisits: childData.numVisits
@@ -294,11 +286,10 @@ function populateMap3D(scene) {
         scene.add(model);
 
         // store the loaded model in the markers array
-        markers3D.push({ id: markerId, model });
+        markers3D.push(model);
       });
     });
     initialLoadComplete = true;
-    console.log("markers3D: ", markers3D);
   });
   
   // listen for changes in the 'memories' database node after initial load
@@ -318,6 +309,8 @@ function populateMap3D(scene) {
 
         // custom property to store extra data
         model.userData = {
+          id: markerId,
+          position: position,
           locationText: childData.locationText,
           memoryText: childData.memoryText,
           numVisits: childData.numVisits
@@ -330,29 +323,24 @@ function populateMap3D(scene) {
           })
         );
         scene.add(model);
-        console.log("scene.children after adding: ", scene.children);
 
         // store the loaded model in the markers array
-        markers3D.push({ id: markerId, model });
+        markers3D.push(model);
       });
     }
   });
-  
 }
 
-// function to access a specific marker by its id
-function getMarkerById(id) {
-  return markers3D.find(marker => marker.id === id);
+function addMarker3D(scene) {
+
 }
 
 function hideMarkers3D() {
-  console.log('hide 3D markers');
   scene.visible = false;
   overlay.requestRedraw();
 }
 
 function showMarkers3D() {
-  console.log('show 3D markers');
   scene.visible = true;
   overlay.requestRedraw();
 }
@@ -388,15 +376,58 @@ function processPoints(geometry, callback, thisArg) {
   }
 }
 
-// revise this soon so that it gets their location on page load and continuously updates it whenever it changes
-// from https://developers.google.com/maps/documentation/javascript/geolocation#maps_map_geolocation-javascript
-function initGeolocation() {
-    const locationButton = document.getElementById("currentloc-button");
-    locationButton.addEventListener("click", locateUser);
+function initControls() {
+  const locationBtn = document.getElementById("locateme-button");
+  const inpersonBtn = document.getElementById("inperson-button");
+  const locatemeImage = document.getElementById("locateme-image");
+
+  locationBtn.addEventListener("click", locateUser);
+  inpersonBtn.addEventListener("click", toggleInPerson);
+
+  locationBtn.addEventListener("mousedown", () => {
+      locatemeImage.src = "locateme_black.png";
+  });
+
+  locationBtn.addEventListener("mouseup", () => {
+      locatemeImage.src = "locateme_white.png";
+  });
 }
 
-function locateUser() {
-  infoWindow = new google.maps.InfoWindow();
+function toggleInPerson() {
+  const inpersonText = document.getElementById("inperson-text");
+  const inpersonBtn = document.getElementById("inperson-button");
+  const inpersonImg = document.getElementById("inperson-image");
+
+  if (!inPersonMode) {
+    inPersonMode = true;
+    inpersonText.textContent = "In Person Mode: On";
+    inpersonText.style.marginRight = "6px";
+    inpersonImg.src = "inperson_black.png";
+    showMarkers3D();
+    hideMarkers2D();
+    if (currLoc) {
+      zoomIn(currLoc);
+    } else {
+      locateUser();
+    }
+  } else {
+    inPersonMode = false;
+    inpersonText.textContent = "In Person Mode: Off";
+    inpersonText.style.marginRight = "0px";
+    inpersonImg.src = "inperson_white.png";
+    showMarkers2D();
+    hideMarkers3D();
+    infoWindow.close();
+    zoomOut(currLoc);
+  }
+}
+
+// detect location on first loading
+function initCurrentLoc() {
+    locateUser(false);
+}
+
+function locateUser(zoom = true) {
   // Try HTML5 geolocation.
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -409,11 +440,14 @@ function locateUser() {
           currLocMarker.setMap(map);
           currLocMarker.setPosition(pos);
           currLoc = pos;
-
-          handleLocationSuccess(pos);
-          if (streetMode) {
-            zoomIn(pos);
+          
+          if (currLoc) {
+            handleLocationSuccess(currLoc);
+            if (zoom) {
+              zoomIn(currLoc);
+            }
           }
+
         }, () => {
         handleLocationError(true, infoWindow, map.getCenter());
         },
@@ -425,16 +459,14 @@ function locateUser() {
 }
 
 function handleLocationSuccess(pos) {
-  console.log("location success");
-  
-  const currentLocButton = document.getElementById("currentloc-button");
-  currentLocButton.classList.remove("hidden");
-  const toggleContainer = document.getElementById("toggle-container");
-  toggleContainer.classList.remove("hidden");
+//   console.log("location success");
+//   const locateMe = document.getElementById("locateme-button");
+//   locateMe.classList.remove("hidden");
+//   const inPerson = document.getElementById("inperson-button");
+//   inPerson.classList.remove("hidden");
 }
 
 function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-  console.log("location error");
     // infoWindow.setPosition(pos);
     // infoWindow.setContent(
     //   browserHasGeolocation
@@ -473,20 +505,24 @@ function initLocationSearch() {
             previewMarker.setMap(map);
 
             previewMarker.bindTo('map', searchBox, 'map');
-            google.maps.event.addListener(previewMarker, 'map_changed', function() {
-              if (!this.getMap()) {
-                this.unbindAll();
-              }
-            });
+            // google.maps.event.addListener(previewMarker, 'map_changed', function() {
+            //   if (!this.getMap()) {
+            //     this.unbindAll();
+            //   }
+            // });
             bounds.extend(place.geometry.location);
             chosenCoords = place.geometry.location;
+            const roundedCoords = {
+              lat: chosenCoords.lat().toFixed(3),
+              lng: chosenCoords.lng().toFixed(3)
+            };
             
             // update location status
-            updatePickPlaceStatus("searched up " + chosenCoords);
-            document.getElementById("search-input").value = "";
+            updatePickPlaceStatus("searched up (" + roundedCoords.lat + ", " + roundedCoords.lng + ")");
           } else {
             // location is outside allowed bounds
             updatePickPlaceStatus("oops, this isn't nyc anymore...");
+            badLoc = true;
           }
  
         } (place));
@@ -494,7 +530,11 @@ function initLocationSearch() {
       }
       map.fitBounds(bounds);
       searchBox.set('map', map);
-      zoomIn(chosenCoords);
+
+      if (chosenCoords) {
+        zoomIn(chosenCoords);
+
+      }
     });
 }
 
@@ -502,8 +542,12 @@ function initLocationSearch() {
 function initClickListener(){
   map.data.addListener("click", function(mapsMouseEvent) {
     chosenCoords = mapsMouseEvent.latLng;
+    const roundedCoords = {
+      lat: chosenCoords.lat().toFixed(3),
+      lng: chosenCoords.lng().toFixed(3)
+    };
     // update location status
-    updatePickPlaceStatus("clicked on " + chosenCoords);
+    updatePickPlaceStatus("clicked on (" + roundedCoords.lat + ", " + roundedCoords.lng + ")");
     // display preview marker
     previewMarker.setPosition(chosenCoords);
     previewMarker.setMap(map);
@@ -524,37 +568,115 @@ function initClickListener(){
 
 // add click listener for 3D models
 function raycast() {
-	window.addEventListener('click', (event) => {
-    if (streetMode) {
-      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1; // y starts out as negative
-      raycaster.setFromCamera(pointer, camera);
-      const intersects = raycaster.intersectObjects(scene.children, true);
-      // console.log(window.innerWidth);
-      console.log(pointer);
-      console.log(scene.children);
-  
-      // loop through all intersected objects, trigger other events based on what user clicked on
-      for (let i = 0; i < intersects.length; i++) {
-        let object = intersects[i].object;
-        while (object) {
-          if (object.userData.groupName === 'daffodil') {
-            // gsap.to(meshes.default.scale, {
-            // 	x: 5,
-            // 	y: 5,
-            // 	z: 5,
-            // 	duration: 1
-            // });
-            break;
+  window.addEventListener('click', (event) => {
+      if (inPersonMode) {
+          const mousePosition = new THREE.Vector2()
+
+          const mapDiv = map.getDiv()
+          const { left, top, width, height } = mapDiv.getBoundingClientRect()
+
+          const x = event.clientX - left
+          const y = event.clientY - top
+          mousePosition.x = 2 * (x / width) - 1
+          mousePosition.y = 1 - 2 * (y / height)
+
+          // raycaster results
+          const resultsArr = overlay.raycast(mousePosition);
+
+          // if user clicked on a flower
+          if (resultsArr.length > 0) {
+            // closest result
+            let closest = resultsArr[0].object;
+
+            // accessing nested parents until i find the 
+            // "parent" element whose name property is "daffodil"
+            // (closest.parent.parent.parent... etc)
+            while (closest) {
+              if (closest.name === "daffodil") {
+                  // found the desired element
+                  break;
+              }
+              // move to the parent object
+              closest = closest.parent;
+            }
+          
+            // now closest points to the "parent" element with name "daffodil" if found
+            if (closest) {
+              // populate and open the info window of the clicked-on element
+              let closestData = closest.userData;
+
+              // figure out how far user is from the clicked-on marker
+              let dist = getDistanceFromLatLngInMeters(currLoc.lat, currLoc.lng, closestData.position.lat, closestData.position.lng);
+              // console.log(dist);
+              
+              // markers2D and markers3D have same ids, match corresponding model to marker
+              // need 2D marker to pass into infoWindow.open
+              let id = closestData.id;
+              let marker = get2DMarkerById(id);
+
+              if (dist < 100) {
+                infoWindow.setContent(formatContentString(closestData.locationText, closestData.memoryText, true));
+              } else {
+                infoWindow.setContent(formatContentString(closestData.locationText, closestData.memoryText, false));
+              }
+              
+              infoWindow.setPosition(closestData.position);
+              infoWindow.open(map, marker);
+
+              infoWindow.addListener('domready', () => {
+                const shedLightBtn = document.getElementById('shed-light-btn');
+                if (shedLightBtn) {
+                    shedLightBtn.addEventListener('click', () => {
+                        // handle button click event here
+                        console.log('Button clicked!');
+                    });
+                }
+              });
+            }
           }
-          object = object.parent;
-        }
+          overlay.requestRedraw();
       }
-    }
-	});
+  })
 }
 
-function initPopup() {
+// function to access a specific marker by its id
+function get2DMarkerById(id) {
+  const foundMarkerData = markers2D.find(markerData => markerData.id === id);
+  if (foundMarkerData) {
+    return foundMarkerData.marker;
+  } else {
+    return null;
+  }
+}
+
+function formatContentString(locationText, memoryText, closeRange = false) {
+  let contentString;
+  if (closeRange) {
+    contentString =
+    '<div id="content">' + '<div id="siteNotice">' + "</div>" +
+      '<p id="window-location-text" style="font-size: 14px; font-weight: 600;">' +
+      locationText + '</p>' +
+      '<div id="bodyContent">' +
+        "<p>" + memoryText + "</p>" +
+        '<button id="shed-light-btn" style="background-color: white; color: black; padding: 5px 10px; margin-bottom: 5px; border-radius: 20px; border-width: thin;">☀ shed light on memory</button>' +
+      "</div>" + 
+    "</div>";
+  } else {
+    contentString =
+    '<div id="content">' + '<div id="siteNotice">' + "</div>" +
+      '<p id="window-location-text" style="font-size: 14px; font-weight: 600;">' +
+      locationText + '</p>' +
+      '<div id="bodyContent">' +
+        "<p>" + memoryText + "</p>" +
+        '<p style="font-size: 12px; font-style: italic;">visit in-person to interact!</p>' +
+        // '<button style="background-color: white; color: black; padding: 5px 10px; margin-bottom: 5px; border-radius: 20px; border-width: thin;">visit me to interact!</button>' +
+      "</div>" + 
+    "</div>";
+  }
+  return contentString;
+}
+
+function initSidePanel() {
   document.querySelector(".side-panel-heading").addEventListener("click", () => {
     document.querySelector(".side-panel").classList.toggle("is-open");
   });
@@ -593,19 +715,15 @@ function addMarker(coords, locationText, memoryText) {
       position: coords,
       map: map,
     });
-
-    let content = locationText + ": " + memoryText;
-    marker['text'] = content;
-
-    // open up the infoWindow
-    infoWindow.setContent(content);
-    infoWindow.open(map, marker);
-
-    // add click listener to marker
+        
     marker.addListener('click', function() {
-      infoWindow.setContent(content);
-      infoWindow.open(map, marker);
+        infoWindow.setContent(formatContentString(locationText, memoryText, true));
+        infoWindow.open(map, marker);
     });
+
+    if (inPersonMode) {
+      marker.setMap(null);
+    }
   }
 }
 
@@ -632,6 +750,7 @@ function clearUserInput() {
     chosenCoords = {};
     document.getElementById("location-text").value = "";
     document.getElementById("memory-text").value = "";
+    document.getElementById("search-input").value = "";
 
     // update location and marker statuses
 }
@@ -640,31 +759,10 @@ function updatePickPlaceStatus(text) {
   document.getElementById("pick-place-status").innerText = text;
 }
 
-function initStreetMode() {
-  // add event listener to the checkbox element
-  let toggleContainer = document.getElementById("toggle-container");
-  let toggle = document.getElementById("streetmode-toggle");
-  toggle.addEventListener("change", function(event) {
-    if (this.checked) {
-      streetMode = true;
-      showMarkers3D();
-      hideMarkers2D();
-      locateUser();
-      // zoomIn(currLoc);
-      // set min zoom?
-    } else {
-      streetMode = false;
-      showMarkers2D();
-      hideMarkers3D();
-      zoomOut(currLoc);
-    }
-  });
-}
-
 function zoomIn(center) {
   map.setCenter(center);
   map.setZoom(19); // zoom in
-  map.setTilt(90); // tilt down
+  map.setTilt(45); // tilt down
 }
 
 function zoomOut(center) {
@@ -673,4 +771,22 @@ function zoomOut(center) {
   map.setTilt(0);  // no tilt
 }
 
-// 10 is min zoom
+// haversine formula for straight-line distance
+// from https://stackoverflow.com/questions/18883601/function-to-calculate-distance-between-two-coordinates
+function getDistanceFromLatLngInMeters(lat1, lng1, lat2, lng2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dlng = deg2rad(lng2-lng1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dlng/2) * Math.sin(dlng/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c * 1000; // Distance in meters
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}

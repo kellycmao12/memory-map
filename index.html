@@ -41,11 +41,18 @@
             <p class="small-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.</p>
         </div>
         <div id="controls-container">
-            <button id="currentloc-button" class="hidden">Current Location</button>
-            <label id="toggle-container" class="switch hidden">
-                <input id="streetmode-toggle" type="checkbox">
-                <span class="slider round"></span>
-            </label>
+            <div id="locateme-container">
+                <button id="locateme-button" class="image-button">
+                    <img src="locateme_white.png" id="locateme-image" class="control-image" alt="Locate me button">
+                    <span id="locateme-text" class="control-text">Locate Me</span>
+                </button>
+            </div>
+            <div id="inperson-container hidden">
+                <button id="inperson-button" class="image-button">
+                    <img src="inperson_white.png" id="inperson-image" class="control-image" alt="In person mode button">
+                    <span id="inperson-text" class="control-text">In Person Mode: Off</span>
+                </button>
+            </div>
         </div>
     </div>
     
@@ -56,40 +63,42 @@
                media="(max-width: 767px)"
                srcset="/overlay-frame-phone.png">
             <source 
-               media="(max-width: 1200px)"
+               media="(max-width: 1400px)"
                srcset="/overlay-frame-med.png">
             <source 
-               media="(min-width: 1201px)"
+               media="(min-width: 1401px)"
                srcset="/overlay-frame.png">
             <img src="/overlay-frame.png" alt="frame overlay for map" class="map-overlay">
         </picture>
         <div id="map"></div>
     </div>
+
+    <!-- <div id="content">Hello world!</div> -->
     
     <div class="side-panel is-open">
         <button class="side-panel-heading" type="button">
           <div class="panel-heading-title">
             <p>Add a new memory!</p>
           </div>
-          <span class="material-icons sp-icon-open">expand_less</span>
-          <span class="material-icons sp-icon-close">expand_more</span>
+          <span class="material-icons sp-icon-open">add</span>
+          <span class="material-icons sp-icon-close">add</span>
         </button>
         <div class="side-panel-content">
             <form id="marker-form" class="numbered-list">
                 <ol>
                     <li>
                         <p>Pick a place on the map.</p>
-                        <input id="search-input" class="controls" type="text" placeholder="search up a place..."/>
+                        <input id="search-input" class="text-input controls" type="text" placeholder="or search up a place..."/>
                         <p class="small-text" id="pick-place-status">click on the map to drop a pin!</p>
                     </li>
                     <li>
-                        <p>Describe the place in your own words.</p>
-                        <p class="small-text" id="location-instruct">ex. a bench in Washington Square Park, the corner of Lafayette and Canal, an exhibit in the MoMA</p>
-                        <textarea id="location-text" placeholder=""></textarea>
+                        <p>Enter the name of the place.</p>
+                        <!-- <p class="small-text" id="location-instruct">ex. a bench in Washington Square Park, the corner of Lafayette and Canal, an exhibit in the MoMA</p> -->
+                        <textarea id="location-text" class="text-input" placeholder="ex. a bench in Washington Square Park, the corner of Lafayette and Canal, an exhibit in the MoMA"></textarea>
                     </li>
                     <li>
                         <p>Enter a memory that happened here.</p>
-                        <textarea id="memory-text" placeholder=""></textarea>
+                        <textarea id="memory-text" class="text-input" placeholder=""></textarea>
                     </li>
                 </ol>
                 <button type="submit" id="add-marker-btn">Submit</button>
