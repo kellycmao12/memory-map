@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NYC Map</title>
+    <title>Topology of Memory</title>
+    <link rel="icon" type="image/x-icon" href="/public/daffodil_square.png">
 
     <!-- load maps javascript api -->
     <script async defer
@@ -33,23 +34,25 @@
 <body>
     <div class="top-container">
         <div id="project-heading">
-            <img src="logo placeholder.png" alt="logo" class="project-logo">
-            <h1 class="project-name">Project<br/>Name</h1>
+            <img src="daffodil.png" alt="logo" class="project-logo">
+            <h1 class="project-name">Topology<br/>of Memory</h1>
         </div>
         <div id="project-description">
             <h3>An interactive map of memories made in New York.</h3>
-            <p class="small-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.</p>
+            <p class="small-text">
+                Document any personal memory you associate with a place in New York, or visit the memories that have been left here by others.
+            </p>
         </div>
         <div id="controls-container">
             <div id="locateme-container">
                 <button id="locateme-button" class="image-button">
-                    <img src="locateme_white.png" id="locateme-image" class="control-image" alt="Locate me button">
+                    <img src="locateme_outline.png" id="locateme-image" class="control-image" alt="Locate me button">
                     <span id="locateme-text" class="control-text">Locate Me</span>
                 </button>
             </div>
             <div id="inperson-container hidden">
                 <button id="inperson-button" class="image-button">
-                    <img src="inperson_white.png" id="inperson-image" class="control-image" alt="In person mode button">
+                    <img src="inperson_outline.png" id="inperson-image" class="control-image" alt="In person mode button">
                     <span id="inperson-text" class="control-text">In Person Mode: Off</span>
                 </button>
             </div>
@@ -92,12 +95,15 @@
                         <p class="small-text" id="pick-place-status">click on the map to drop a pin!</p>
                     </li>
                     <li>
-                        <p>Enter the name of the place.</p>
-                        <!-- <p class="small-text" id="location-instruct">ex. a bench in Washington Square Park, the corner of Lafayette and Canal, an exhibit in the MoMA</p> -->
+                        <p>Where did the memory happen?</p>
                         <textarea id="location-text" class="text-input" placeholder="ex. a bench in Washington Square Park, the corner of Lafayette and Canal, an exhibit in the MoMA"></textarea>
                     </li>
                     <li>
-                        <p>Enter a memory that happened here.</p>
+                        <p id="no-margin-top">When did the memory happen?</p>
+                        <input id="time-text" class="text-input" type="text" placeholder="ex. June 1 2020, 1990s, 2019-present">
+                    </li>
+                    <li>
+                        <p>Describe your memory.</p>
                         <textarea id="memory-text" class="text-input" placeholder=""></textarea>
                     </li>
                 </ol>
