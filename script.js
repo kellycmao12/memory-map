@@ -78,13 +78,13 @@ let camera;
 let modelScale;
 let composer;
 
-// document.addEventListener('DOMContentLoaded', () => {
-//   initMap();
-// });
-
-window.onload = () => {
+document.addEventListener('DOMContentLoaded', () => {
   initMap();
-};
+});
+
+// window.onload = () => {
+//   initMap();
+// };
 
 function initMap() {
     // create map, initialize properties
@@ -294,6 +294,8 @@ function toggleInPerson() {
 // detect location on first loading
 function initCurrentLoc() {
     locateUser(false); // don't zoom to user's loc on first loading
+    locateUser(false);
+    console.log("called locate user twice");
 }
 
 // find user's location
@@ -393,6 +395,9 @@ function initLocationSearch() {
             
             // update location status
             updatePickPlaceStatus("searched up (" + roundedCoords.lat + ", " + roundedCoords.lng + ")");
+            // update location text box
+            document.getElementById("location-text").value = place.name;
+
             badLoc = false;
           } else {
             // location is outside allowed bounds
