@@ -25,8 +25,8 @@ const roughNYCBounds = [
   { lat: 40.535, lng: -73.948 },
   { lat: 40.488, lng: -74.259 }
 ];
-const roughNYCArea = new google.maps.Polygon({ paths: roughNYCBounds, fillColor: "#FF0000",
-fillOpacity: 0.35 });
+
+let roughNYCArea;
 
 // general map stuff
 let map;
@@ -78,13 +78,14 @@ let camera;
 let modelScale;
 let composer;
 
-document.addEventListener('DOMContentLoaded', () => {
-  initMap();
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//   initMap();
+// });
 
 // window.onload = () => {
 //   initMap();
 // };
+window.addEventListener("load", initMap);
 
 function initMap() {
     // create map, initialize properties
@@ -95,6 +96,9 @@ function initMap() {
  
     // create bounds
     bounds = new google.maps.LatLngBounds();
+
+    roughNYCArea = new google.maps.Polygon({ paths: roughNYCBounds, fillColor: "#FF0000",
+    fillOpacity: 0.35 });
 
     // add geoJson to the data-layer
     map.data.loadGeoJson('/boundaries.geojson');
@@ -289,7 +293,7 @@ function toggleInPerson() {
     infoWindow.close();
     zoomOut(currLoc);
   }
-  console.log(markers2D.length);
+  // console.log(markers2D.length);
 }
 
 // detect location on first loading
@@ -334,7 +338,7 @@ function locateUser(zoom = true) {
 
 // unhide location-based controls
 function handleLocationSuccess(pos) {
-  console.log("location success");
+  // console.log("location success");
   const locateMe = document.getElementById("locateme-button");
   locateMe.classList.remove("hidden");
   const inPerson = document.getElementById("inperson-button");
@@ -405,7 +409,7 @@ function initLocationSearch() {
             previewMarker.setPosition(null);
             previewMarker.setMap(null);
             badLoc = true;
-            console.log(chosenCoords);
+            // console.log(chosenCoords);
           }
         } (place));
  
@@ -675,7 +679,7 @@ function populateMap3D(scene) {
           })
         );
         scene.add(model);
-        console.log("add 3D model based on change in database");
+        // console.log("add 3D model based on change in database");
 
         // store the loaded model in the markers array
         markers3D.push(model);
@@ -742,7 +746,7 @@ function raycast() {
               let id = closestData.id;
               let marker = get2DMarkerById(id);
               idToGrow = id;
-              console.log(marker);
+              // console.log(marker);
 
               // display info window content based on how far user is
               if (dist < 100) {
@@ -826,13 +830,13 @@ function shedLight() {
   })
   .then(transactionResult => {
     if (transactionResult.committed) {
-      console.log('numVisits updated successfully.');
+      // console.log('numVisits updated successfully.');
       // scale flower up
       infoWindow.close();
 
       const model = markers3D.find(model => model.userData.id === idToGrow);
 
-      console.log("scaling up");
+      // console.log("scaling up");
       gsap.to(model.scale, {
         x: "+=2",
         y: "+=2",
@@ -841,7 +845,7 @@ function shedLight() {
       });
       overlay.requestRedraw();
     } else {
-      console.log('Transaction aborted.');
+      // console.log('Transaction aborted.');
     }
   })
   .catch(error => {
