@@ -14,6 +14,7 @@ body {
   padding: 10px 2%;
   /* justify-content: space-between; */
   position: fixed;
+  z-index: 2000;
 }
 
 #project-heading, #project-description {
@@ -105,18 +106,21 @@ button {
 }
 
 #add-marker-btn {
-  margin: 5px 10px;
   font-size: 14px;
   padding: 5px 10px;
   border-radius: 20px;
   border-width: thin;
   font-family: "Work Sans", sans-serif;
-}
-
-#add-marker-btn {
+  background-color: rgb(40, 40, 40);
+  color: white;
   margin: 0 15px 15px;
   align-self: flex-end;
+  transition: background-color 0.2s;
 }
+
+/* #add-marker-btn:hover {
+  background-color: rgb(60, 60, 60);
+} */
 
 #toggle-container {
   margin-top: 2px;
@@ -237,47 +241,6 @@ button {
   display: initial !important;
 }
 
-@media only screen and (max-width: 480px) {
-  .side-panel {
-    right: 0px;
-    width: 100%;
-  }
-  
-  #search-input, #location-text, #memory-text {
-    width: calc(100% - 60px);
-  }
-
-  h1.project-name {
-    /* width: 50px; */
-    line-height: 28px;
-    font-size: 28px;
-    font-weight: normal;
-    margin-left: 20px;
-  }
-
-}
-
-@media only screen and (max-width: 767px) {
-  #project-description {
-    display: none;
-  }
-  
-  .control-text {
-    font-size: 12px !important;
-    width: 100px;
-    margin: 0;
-  }
-
-  .control-image {
-    margin: 5px;
-  }
-
-  .top-container {
-    padding: 0 1%;
-    width: 100%;
-  }
-}
-
 .numbered-list {
   display: flex;
   flex-direction: column;
@@ -356,15 +319,78 @@ button.gm-ui-hover-effect {
   transition: background-color 0.2s;
 }
 
-#shed-light-btn:hover {
+#shed-light-btn:hover, #add-marker-btn:hover {
   background-color: rgb(70, 70, 70) !important;
   border: thin solid rgb(70, 70, 70);
 }
 
-#shed-light-btn:active {
+#shed-light-btn:active, #add-marker-btn:active {
   background-color: white !important;
   color: black !important;
   /* border-color: black; */
   border: thin solid black;
   /* border-width: thin; */
+}
+
+@media only screen and (max-width: 480px) {
+  .side-panel {
+    right: 0px;
+    width: 100%;
+  }
+  
+  #search-input, #location-text, #memory-text {
+    width: calc(100% - 60px);
+  }
+
+  h1.project-name {
+    /* width: 50px; */
+    line-height: 28px;
+    font-size: 24px;
+    font-weight: normal;
+    margin-left: 0px;
+  }
+
+  img.project-logo {
+    margin-left: 30px;
+  }
+
+}
+
+@media only screen and (max-width: 767px) {
+  #project-description {
+    display: none;
+  }
+
+  .project-logo {
+    width: 35px;
+    height: 55px;
+  }
+  
+  .control-text {
+    font-size: 12px !important;
+    width: 100px;
+    margin: 0;
+    margin-right: 0 !important;
+    color: rgb(40, 40, 40);
+  }
+
+  .control-image {
+    margin: 5px;
+    width: 15px;
+    height: 20px;
+  }
+
+  .top-container {
+    padding: 0 1%;
+    width: 100%;
+    height: 10%;
+  }
+
+  #map {
+    height: 85%;
+  }
+
+  .map-overlay {
+    height: 86%;
+  }
 }

@@ -160,7 +160,7 @@ function initMap() {
     map.data.setStyle({
       fillColor: "#a8c1ff",
       fillOpacity: 0.1,
-      strokeColor: "#4D62CB",
+      strokeColor: "#4d7bcb",
       strokeWeight: 1,
     });
 
@@ -215,7 +215,7 @@ function initThreeJS() {
   directionalLight.position.set(0, 10, 50)
   // scene.add(directionalLight)
   loader = new GLTFLoader();
-  modelScale = 2;
+  modelScale = 10;
 
   pointer = new THREE.Vector2();
   raycaster = new THREE.Raycaster();
@@ -363,6 +363,15 @@ function initLocationSearch() {
     const input = document.getElementById("search-input");
     const searchBox = new google.maps.places.SearchBox(input);
 
+    // figure out how to prevent enter from autocompleting search
+    // input.addEventListener("keypress", function (event) {
+    //   if (event.key === 'Enter') {
+    //       event.stopPropagation();
+    //       console.log('pressed enter');
+    //       return false;
+    //   }
+    // });
+
     map.addListener("bounds_changed", () => {
       searchBox.setBounds(map.getBounds());
     });
@@ -398,10 +407,9 @@ function initLocationSearch() {
             
             // update location status
             updatePickPlaceStatus("searched up (" + roundedCoords.lat + ", " + roundedCoords.lng + ")");
+            badLoc = false;
             // update location text box
             document.getElementById("location-text").value = place.name;
-
-            badLoc = false;
           } else {
             // location is outside allowed bounds
             updatePickPlaceStatus("oops, this isn't nyc anymore...");
@@ -409,6 +417,8 @@ function initLocationSearch() {
             previewMarker.setPosition(null);
             previewMarker.setMap(null);
             badLoc = true;
+            // update location text box
+            document.getElementById("location-text").value = "";
             // console.log(chosenCoords);
           }
         } (place));
@@ -465,6 +475,14 @@ function initSidePanel() {
 
 // add event listener to form for adding memories to database
 function initForm() {
+  // prevent enter from submitting
+  document.getElementById("marker-form").addEventListener("keypress", function (event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        return false;
+    }
+  });
+
   // Add event listener to the form
   document.getElementById("marker-form").addEventListener("submit", function(event) {
     event.preventDefault(); // Prevent default form submission
@@ -610,19 +628,19 @@ function populateMap3D(scene) {
       const markerId = childSnapshot.key;
       const position = childData.coords;
       const numVisits = childData.numVisits;
-      const scaleUp = numVisits + 1; // add 1 in case numVisits is 0
+      const scaleUp = numVisits;
 
       loader.load("../daffodil.glb", (gltf) => {
         const model = gltf.scene;
         model.name = 'daffodil';
         model.rotation.x = Math.PI / 2;
         model.rotation.y = Math.random() * 2 * Math.PI;
-        model.scale.set(modelScale * scaleUp, modelScale * scaleUp, modelScale * scaleUp);
+        model.scale.set(modelScale + scaleUp, modelScale + scaleUp, modelScale + scaleUp);
 
         // custom property to store extra data
         model.userData = {
           id: markerId,
-          scale: modelScale * scaleUp,
+          scale: modelScale + scaleUp,
           position: position,
           locationText: childData.locationText,
           timeText: childData.timeText,
@@ -838,9 +856,9 @@ function shedLight() {
 
       // console.log("scaling up");
       gsap.to(model.scale, {
-        x: "+=2",
-        y: "+=2",
-        z: "+=2",
+        x: "+=1",
+        y: "+=1",
+        z: "+=1",
         duration: 1
       });
       overlay.requestRedraw();
