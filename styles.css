@@ -81,7 +81,6 @@ h1.project-name {
   height: 85%;
   width: 102%;
   position: fixed !important;
-  bottom: -2%;
   /* left: -0.8%; */
 
   height: 81%;
@@ -392,5 +391,9 @@ button.gm-ui-hover-effect {
 
   .map-overlay {
     height: 86%;
+  }
+
+  .side-panel {
+    bottom: -10px;
   }
 }
