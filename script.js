@@ -156,7 +156,7 @@ function initMap() {
     map.data.setStyle({
       fillColor: "#a8c1ff",
       fillOpacity: 0.1,
-      strokeColor: "#4D62CB", 
+      strokeColor: "#4D62CB",
       strokeWeight: 1,
     });
 
@@ -289,13 +289,12 @@ function toggleInPerson() {
     infoWindow.close();
     zoomOut(currLoc);
   }
+  console.log(markers2D.length);
 }
 
 // detect location on first loading
 function initCurrentLoc() {
     locateUser(false); // don't zoom to user's loc on first loading
-    locateUser(false);
-    console.log("called locate user twice");
 }
 
 // find user's location
