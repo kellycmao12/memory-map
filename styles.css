@@ -394,6 +394,6 @@ button.gm-ui-hover-effect {
   }
 
   .side-panel {
-    bottom: -10px;
+    bottom: 10px;
   }
 }
