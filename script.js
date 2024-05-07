@@ -422,7 +422,6 @@ function initLocationSearch() {
             // console.log(chosenCoords);
           }
         } (place));
- 
       }
       map.fitBounds(bounds);
       searchBox.set('map', map);
@@ -496,7 +495,6 @@ function initForm() {
         previewMarker.setMap(null);
         // add a marker
         addMarker(chosenCoords, locationText, timeText, memoryText);
-
         
         // clear chosenCoords and text
         clearUserInput();
@@ -856,12 +854,12 @@ function shedLight() {
 
       // console.log("scaling up");
       gsap.to(model.scale, {
-        x: "+=1",
-        y: "+=1",
-        z: "+=1",
-        duration: 1
+        x: "+=3",
+        y: "+=3",
+        z: "+=3",
+        duration: 3,
+        onUpdate: () => overlay.requestRedraw(),
       });
-      overlay.requestRedraw();
     } else {
       // console.log('Transaction aborted.');
     }
