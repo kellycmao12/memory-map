@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topology of Memory</title>
+    <link rel="icon" type="image/x-icon" href="/daffodil_square.png">
+
+    <!-- load maps javascript api -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?v=beta&key=AIzaSyDuy-6ipdy8hZW-RCLXzNqLFko0rAyuy0M&loading=async&libraries=places,geometry">
+    </script>
+
+    
+
+    <!-- load firebase setup code -->
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-database.js"></script>
+    
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap" rel="stylesheet">
+
+    <!-- icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+  <script type="module" crossorigin src="/assets/index-C4ioMmEr.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DtTFIB7k.css">
+</head>
+
+<body>
+    <div class="top-container">
+        <div id="project-heading">
+            <img src="daffodil.png" alt="logo" class="project-logo">
+            <h1 class="project-name">Topology<br/>of Memory</h1>
+        </div>
+        <div id="project-description">
+            <h3>An interactive map of memories made in New York.</h3>
+            <p class="small-text">
+                A collective archive of memories in NYC and the spaces they are rooted in. Document any personal memory you associate with a place in New York, or visit the memories that have been left here by others.
+            </p>
+        </div>
+        <div id="controls-container">
+            <div id="locateme-container">
+                <button id="locateme-button" class="image-button">
+                    <img src="locateme_outline.png" id="locateme-image" class="control-image" alt="Locate me button">
+                    <span id="locateme-text" class="control-text">Locate Me</span>
+                </button>
+            </div>
+            <div id="inperson-container hidden">
+                <button id="inperson-button" class="image-button">
+                    <img src="inperson_outline.png" id="inperson-image" class="control-image" alt="In person mode button">
+                    <span id="inperson-text" class="control-text">In Person Mode: Off</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="map-container">
+         
+        <picture>
+            <source 
+               media="(max-width: 767px)"
+               srcset="/overlay-frame-phone.png">
+            <source 
+               media="(max-width: 1400px)"
+               srcset="/overlay-frame-med.png">
+            <source 
+               media="(min-width: 1401px)"
+               srcset="/overlay-frame.png">
+            <img src="/overlay-frame.png" alt="frame overlay for map" class="map-overlay">
+        </picture>
+        <div id="map"></div>
+    </div>
+
+    <!-- <div id="content">Hello world!</div> -->
+    
+    <div class="side-panel is-open">
+        <button class="side-panel-heading" type="button">
+          <div class="panel-heading-title">
+            <p>Add a new memory!</p>
+          </div>
+          <span class="material-icons sp-icon-open">add</span>
+          <span class="material-icons sp-icon-close">add</span>
+        </button>
+        <div class="side-panel-content">
+            <form id="marker-form" class="numbered-list">
+                <ol>
+                    <li>
+                        <p>Pick a place on the map.</p>
+                        <input id="search-input" class="text-input controls" type="text" placeholder="or search up a place..."/>
+                        <p class="small-text" id="pick-place-status">click on the map to drop a pin!</p>
+                    </li>
+                    <li>
+                        <p>Where did the memory happen?</p>
+                        <textarea id="location-text" class="text-input" placeholder="ex. a bench in Washington Square Park, the corner of Lafayette and Canal, an exhibit in the MoMA"></textarea>
+                    </li>
+                    <li>
+                        <p id="no-margin-top">When did the memory happen?</p>
+                        <input id="time-text" class="text-input" type="text" placeholder="ex. June 1 2020, 1990s, 2019-present">
+                    </li>
+                    <li>
+                        <p>Describe your memory.</p>
+                        <textarea id="memory-text" class="text-input" placeholder=""></textarea>
+                    </li>
+                </ol>
+                <button type="submit" id="add-marker-btn">Submit</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
