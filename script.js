@@ -287,7 +287,7 @@ function toggleInPerson() {
     inPersonMode = false;
     inpersonText.textContent = "In Person Mode: Off";
     inpersonText.style.marginRight = "0px";
-    inpersonImg.src = "inperson_outline.png";
+    inpersonImg.src = "https://kellymao.com/topology-of-memory/dist/inperson_outline.png";
     showMarkers2D();
     hideMarkers3D();
     infoWindow.close();
