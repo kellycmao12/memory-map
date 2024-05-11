@@ -28,3 +28,10 @@ eg. all images need to use `https://kellymao.com/topology-of-memory/dist/daffodi
 ```
 
 1. hosting on digital ocean
+* copy changed files -- likely the `public/index.html` and `public/assets` to cyberduck inside the public folder
+
+1. github pages
+* set up a new repo that has only the files that are inside of the `/dist` folder
+* go to settings -> pages -> post
+* go to settings -> pages -> domain to update domain
+    * likely will have to delete everything on your droplet and change some namecheap settings
