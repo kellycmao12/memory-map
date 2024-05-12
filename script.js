@@ -101,7 +101,7 @@ function initMap() {
     fillOpacity: 0.35 });
 
     // add geoJson to the data-layer
-    map.data.loadGeoJson('/boundaries.geojson');
+    map.data.loadGeoJson('https://kellymao.com/topology-of-memory/dist/boundaries.geojson');
 
     inPersonMode = false;
     badLoc = false;
@@ -112,7 +112,7 @@ function initMap() {
       map: null,
       icon: {
         scaledSize: new google.maps.Size(24, 24),
-        url: "/transparent_circle.png",
+        url: "https://kellymao.com/topology-of-memory/dist/transparent_circle.png",
         anchor: new google.maps.Point(12, 12),
       }
     });
@@ -123,7 +123,7 @@ function initMap() {
       map: null,
       icon: {
         scaledSize: new google.maps.Size(40, 55),
-        url: "/inperson_white.png"
+        url: "https://kellymao.com/topology-of-memory/dist/inperson_white.png"
       }
     });
 
@@ -258,11 +258,11 @@ function initControls() {
   inpersonBtn.addEventListener("click", toggleInPerson);
 
   locationBtn.addEventListener("mousedown", () => {
-      locatemeImage.src = "locateme_black.png";
+      locatemeImage.src = "https://kellymao.com/topology-of-memory/dist/locateme_black.png";
   });
 
   locationBtn.addEventListener("mouseup", () => {
-      locatemeImage.src = "locateme_outline.png";
+      locatemeImage.src = "https://kellymao.com/topology-of-memory/dist/locateme_outline.png";
   });
 }
 
@@ -275,7 +275,7 @@ function toggleInPerson() {
     inPersonMode = true;
     inpersonText.textContent = "In Person Mode: On";
     inpersonText.style.marginRight = "6px";
-    inpersonImg.src = "inperson_black.png";
+    inpersonImg.src = "https://kellymao.com/topology-of-memory/dist/inperson_black.png";
     showMarkers3D();
     hideMarkers2D();
     if (currLoc) {
@@ -518,7 +518,7 @@ function addMarker(coords, locationText, timeText, memoryText) {
       map: map,
       icon: {
         scaledSize: new google.maps.Size(30, 55),
-        url: "/daffodil.png"
+        url: "https://kellymao.com/topology-of-memory/dist/daffodil.png"
       }
     });
       
@@ -578,7 +578,7 @@ function populateMap2D() {
         position: childData.coords,
         icon: {
           scaledSize: new google.maps.Size(30, 55),
-          url: "/daffodil.png"
+          url: "https://kellymao.com/topology-of-memory/dist/daffodil.png"
         }
       });
 
@@ -628,7 +628,7 @@ function populateMap3D(scene) {
       const numVisits = childData.numVisits;
       const scaleUp = numVisits;
 
-      loader.load("../daffodil.glb", (gltf) => {
+      loader.load("https://kellymao.com/topology-of-memory/dist/daffodil.glb", (gltf) => {
         const model = gltf.scene;
         model.name = 'daffodil';
         model.rotation.x = Math.PI / 2;
@@ -671,7 +671,7 @@ function populateMap3D(scene) {
 
       // load the 3D model for the new marker
       // loader.load("../daffodil/scene.gltf", (gltf) => {
-      loader.load("../daffodil.glb", (gltf) => {
+      loader.load("https://kellymao.com/topology-of-memory/dist/daffodil.glb", (gltf) => {
         const model = gltf.scene;
         model.name = 'daffodil';
         model.rotation.x = Math.PI / 2;
@@ -800,10 +800,10 @@ function formatContentString(locationText, timeText, memoryText, closeRange = fa
     contentString =
     '<div id="info-window-content">' + '<div id="siteNotice">' + "</div>" +
       '<p id="window-location-text" style="font-size: 14px; font-weight: 600;">' +
-        '<img src="locateme_black.png" style="width: 10px; height: 12px; position: relative; top: 1px; margin-right: 5px;">' +
+        '<img src="https://kellymao.com/topology-of-memory/dist/locateme_black.png" style="width: 10px; height: 12px; position: relative; top: 1px; margin-right: 5px;">' +
         locationText + '</p>' +
       '<p id="window-time-text" style="font-size: 14px; font-weight: 600;">' +
-        '<img src="clock.png" style="width: 12px; height: 12px; position: relative; top: 1px; margin-right: 5px;">' +
+        '<img src="https://kellymao.com/topology-of-memory/dist/clock.png" style="width: 12px; height: 12px; position: relative; top: 1px; margin-right: 5px;">' +
         timeText + '</p>' +
       '<div id="bodyContent">' +
         "<p>" + memoryText + "</p>" +
@@ -814,10 +814,10 @@ function formatContentString(locationText, timeText, memoryText, closeRange = fa
     contentString =
     '<div id="info-window-content">' + '<div id="siteNotice">' + "</div>" +
       '<p id="window-location-text" style="font-size: 14px; font-weight: 600;">' +
-        '<img src="locateme_black.png" style="width: 10px; height: 12px; position: relative; top: 1px; margin-right: 5px;">' +
+        '<img src="https://kellymao.com/topology-of-memory/dist/locateme_black.png" style="width: 10px; height: 12px; position: relative; top: 1px; margin-right: 5px;">' +
         locationText + '</p>' +
       '<p id="window-time-text" style="font-size: 14px; font-weight: 600;">' +
-        '<img src="clock.png" style="width: 12px; height: 12px; position: relative; top: 1px; margin-right: 5px;">' +
+        '<img src="https://kellymao.com/topology-of-memory/dist/clock.png" style="width: 12px; height: 12px; position: relative; top: 1px; margin-right: 5px;">' +
         timeText + '</p>' +
       '<div id="bodyContent">' +
         "<p>" + memoryText + "</p>" +
